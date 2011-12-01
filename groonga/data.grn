@@ -1,0 +1,45 @@
+load --table Keyword
+[
+  {
+    "_key": "perl",
+    "name": "Perl",
+    "display_fg": true,
+  },  
+  {
+    "_key": "html5",
+    "name": "HTML5",
+    "display_fg": false,
+  },  
+  {
+    "_key": "javascript",
+    "name": "javascript",
+    "display_fg": true,
+  },
+  {
+    "_key": "php",
+    "name": "PHP",
+    "display_fg": true,
+  },
+  {
+    "_key": "key",
+    "name": "hogehoge",
+    "display_fg": true,
+  } 
+]
+load --table Article
+[
+   {
+    "_key": "key1",
+    "title": "perl",
+    "keywords": ["perl","php"],
+    "content": "content1",
+    "display_fg": true,
+  },
+  {
+    "_key": "key2",
+    "title": "title2",
+    "keywords": ["perl","php", "javascript"],
+    "content": "perl",
+    "display_fg": true,
+  }
+]

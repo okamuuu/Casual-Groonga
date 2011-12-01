@@ -1,0 +1,27 @@
+This is Perl module Casual-Groonga.
+
+INSTALLATION
+
+Casual-Groonga installation is straightforward. If your CPAN shell is set up,
+you should just be able to do
+
+    % cpan Casual-Groonga
+
+Download it, unpack it, then build it as per the usual:
+
+    % perl Makefile.PL
+    % make && make test
+
+Then install it:
+
+    % make install
+
+DOCUMENTATION
+
+Casual-Groonga documentation is available as in POD. So you can do:
+
+    % perldoc Casual-Groonga
+
+to read the documentation online with your favorite pager.
+
+okamura
