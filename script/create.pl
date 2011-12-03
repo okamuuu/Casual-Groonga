@@ -10,6 +10,7 @@ my $port = $ENV{GROONGA_PORT} || 10041;
 my $uri = URI->new("http://localhost:$port/d/load"); 
 $uri->query_form(
     table  => 'Article',
+    ifexists => 0,
     values => JSON::encode_json(
         [   
             {   

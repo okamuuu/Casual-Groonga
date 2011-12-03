@@ -1,118 +1,50 @@
 use strict;
 use warnings;
-use Cwd ();
-use Carp ();
 use Test::More;
-use Path::Class;
-use Test::Exception;
-use LWP::UserAgent;
-use File::Temp (); 
+use Test::TCP 1.14;
+use Test::Groonga 0.06;
+use Capture::Tiny qw/capture/;
+use Data::Dumper;
 
-my $file = 
+my $FILE = 't/test.grn';
+
+if ( not Test::Groonga::_find_groonga_bin ) {
+    plan skip_all => 'groonga binary is not found';
+}
 
 my $server = Test::Groonga->create(
     default_command_version => 2,
     protocol                => 'http',
-    preload                 => $file,
+    preload                 => $FILE,
 );
 
+ok($server);
+my $port = $server->port;
 
-BEGIN { use_ok 'Test::Groonga' }
+ok($port, "port: $port");
 
-my $bin = Test::Groonga::_find_groonga_bin();
-my $cmd_version = 1;
+local $ENV{GROONGA_PORT} = $port; 
 
-subtest 'get test tcp instance as groonga server' => sub {
-
-    plan skip_all => 'groonga binary is not found' unless defined $bin;
-
-    subtest 'gqtp mode' => sub {
-
-        my $server;
-        lives_ok { $server = Test::Groonga->create(protocol => 'gqtp', default_command_version => $cmd_version) } "create Test::TCP instance.";
-
-        my $port = $server->port;
-        ok $port, "port: $port";
-
-        my $json = `$bin -p $port -c 127.0.0.1 status`;
-        ok $json =~ m/^\[\[0/, "groonga server is running in gqtp mode.";
-
-        $server->stop;
-    };
-
-    subtest 'http mode' => sub {
-
-        my $server;
-        lives_ok { $server = Test::Groonga->create( protocol => 'http', default_command_version=>$cmd_version) } "create Test::TCP instance.";
-
-        my $port = $server->port;
-        ok $port, "port: $port";
-
-        my $url = "http://127.0.0.1:$port/d/status";
-        my $res = LWP::UserAgent->new()->get($url);
-        is $res->code, 200, "groonga server is running in http mode";
-        diag "content: " . $res->content;
-
-        $server->stop;
-    };
-};
-
-subtest 'providing groonga db prepared schema' => sub {
-
-    plan skip_all => 'groonga binary is not found' unless defined $bin;
-
-    my $schema_file = _get_tmp_schema_file();
-
-    subtest 'in gqtp mode' => sub {
-
-        my $server;
-        lives_ok {
-            $server = Test::Groonga->create( protocol => 'gqtp', 'default_command_version' => $cmd_version, preload => $schema_file->stringify );
-        };
-
-        my $port = $server->port;
-
-        my $json = `$bin -p $port -c 127.0.0.1 select --table LocalNames`;
-        ok $json =~ m/^\[\[0/, "groonga server is running in gqtp mode.";
-
-        $server->stop;
-    };
-
-    subtest 'in http mode' => sub {
-
-        my $server;
-        lives_ok {
-            $server = Test::Groonga->create( protocol => 'http', 'default_command_version' => $cmd_version, preload => $schema_file->stringify );
-        };
-
-        my $port = $server->port;
-
-        my $url = "http://127.0.0.1:$port/d/select?table=LocalNames";
-        my $res = LWP::UserAgent->new()->get($url);
-        is $res->code, 200, "groonga server is running in http mode";
-        diag "content: " . $res->content;
- 
-        $server->stop;
-    };
-};
+is ( _loaded_count( capture { do 'script/load.pl' } ), 1 );
+is ( _loaded_count( capture { do 'script/create.pl' } ), 0 );
+is ( _selected_count( capture { do 'script/select.pl' }), 5 );
+is ( _selected_count( capture { do 'script/select2.pl' }), 1 );
+is ( _selected_count( capture { do 'script/select3.pl' }), 2 );
+is ( _selected_count( capture { do 'script/select4.pl' }), 1 );
 
 done_testing;
 
-sub _get_tmp_schema_file {
-    my ( $fh, $filename ) = File::Temp::tempfile( UNLINK => 1 );
-    $fh->close;
-
-    my $schema_file = Path::Class::File->new($filename);
-    $schema_file->openw->print(
-        do { local $/; <DATA>; }
-    );
-    
-    return $schema_file;
+sub _loaded_count {
+    my $json = shift;
+    warn $json;
+    my $data = JSON::decode_json($json);
+    return $data->[1];
 }
 
-__DATA__
-table_create LocalNames 48 ShortText
-table_create Entries 48 ShortText
-column_create Entries local_name 0 LocalNames
-column_create LocalNames Entries_local_name 2 Entries local_name
+sub _selected_count {
+    my $json = shift;
+    warn $json;
+    my $data = JSON::decode_json($json);
+    return $data->[1]->[0]->[0]->[0];
+}
 
