@@ -18,6 +18,10 @@ no_index:
     - inc
     - t
     - xt
+requires:
+  Capture::Tiny: 0.13
+  JSON: 0
 resources:
   license: http://dev.perl.org/licenses/
+  repository: git://github.com/okamuuu/Casual-Groonga.git
 version: 0.01

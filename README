@@ -1,5 +1,6 @@
 SYNOPSIS
 
+    cpanm --installdeps .
     prove t/script.t
 
 SEE ALSO
