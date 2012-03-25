@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::TCP 1.14;
-use Test::Groonga 0.06;
+use Test::Groonga '0.06';
 use Capture::Tiny qw/capture/;
 
 my $FILE = 't/test.grn';
